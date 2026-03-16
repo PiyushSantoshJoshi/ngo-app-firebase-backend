@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Button, Badge, Modal, Form, Alert, Spinner }
 import { useAuth } from '../hooks/useAuth';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNgoApprovedRequirements, postRequirement } from '../redux/requirementSlice';
+import { eventsAPI } from '../api/community';
 
 const NgoDashboard = () => {
   const { user, isNgo } = useAuth();
@@ -12,6 +13,10 @@ const NgoDashboard = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ item: '', quantity: '', description: '' });
   const [createErrors, setCreateErrors] = useState({});
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [eventForm, setEventForm] = useState({ title: '', description: '', eventDate: '', location: '' });
+  const [eventSubmitting, setEventSubmitting] = useState(false);
+  const [eventStatus, setEventStatus] = useState(null);
 
   useEffect(() => {
     if (user?.email) {
@@ -56,7 +61,10 @@ const NgoDashboard = () => {
               <p className='text-muted mb-0'>Manage your requirements. New ones need admin approval.</p>
             </div>
             {isNgo && (
-              <Button variant='primary' onClick={() => setShowCreate(true)}>Create Requirement</Button>
+              <div className="d-flex gap-2">
+                <Button variant='outline-primary' onClick={() => setShowEventModal(true)}><i className="bi bi-calendar-event me-1" /> Create event</Button>
+                <Button variant='primary' onClick={() => setShowCreate(true)}>Create Requirement</Button>
+              </div>
             )}
           </div>
         </Col>
@@ -149,6 +157,50 @@ const NgoDashboard = () => {
           <Button variant='secondary' onClick={() => setShowCreate(false)}>Cancel</Button>
           <Button variant='primary' onClick={handleCreate}>Submit</Button>
         </Modal.Footer>
+      </Modal>
+
+      <Modal show={showEventModal} onHide={() => { setShowEventModal(false); setEventStatus(null); }}>
+        <Modal.Header closeButton><Modal.Title>Create event</Modal.Title></Modal.Header>
+        <Form onSubmit={async (e) => {
+          e.preventDefault();
+          if (!eventForm.title || !eventForm.eventDate || !user?.email) return;
+          setEventSubmitting(true); setEventStatus(null);
+          try {
+            await eventsAPI.create({ ...eventForm, ngoEmail: user.email });
+            setEventStatus('success');
+            setEventForm({ title: '', description: '', eventDate: '', location: '' });
+            setTimeout(() => setShowEventModal(false), 1500);
+          } catch (err) {
+            setEventStatus(err.response?.data?.error || 'Failed to create event');
+          } finally {
+            setEventSubmitting(false);
+          }
+        }}>
+          <Modal.Body>
+            {eventStatus === 'success' && <Alert variant="success">Event created. It will appear on the Events page.</Alert>}
+            {eventStatus && eventStatus !== 'success' && <Alert variant="danger">{eventStatus}</Alert>}
+            <Form.Group className="mb-3">
+              <Form.Label>Title *</Form.Label>
+              <Form.Control value={eventForm.title} onChange={(e) => setEventForm(f => ({ ...f, title: e.target.value }))} required placeholder="e.g. Blood donation drive" />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Date & time *</Form.Label>
+              <Form.Control type="datetime-local" value={eventForm.eventDate} onChange={(e) => setEventForm(f => ({ ...f, eventDate: e.target.value }))} required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Location</Form.Label>
+              <Form.Control value={eventForm.location} onChange={(e) => setEventForm(f => ({ ...f, location: e.target.value }))} placeholder="Venue or address" />
+            </Form.Group>
+            <Form.Group className="mb-0">
+              <Form.Label>Description</Form.Label>
+              <Form.Control as="textarea" rows={2} value={eventForm.description} onChange={(e) => setEventForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description" />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEventModal(false)}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={eventSubmitting}>{eventSubmitting ? 'Creating...' : 'Create event'}</Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </Container>
   );

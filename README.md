@@ -73,31 +73,59 @@ src/
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn package manager
+- A **Google Firebase project** with Firestore enabled
 
-### Installation
+### 1. Install dependencies
 
-1. **Clone the repository**
+**Root (frontend):**
+```bash
+npm install
+```
+
+**Backend:**
+```bash
+cd backend
+npm install
+cd ..
+```
+
+### 2. Configure Firebase (backend)
+
+The backend uses Firebase Admin with a **Service Account** and reads credentials from environment variables.
+
+1. In [Firebase Console](https://console.firebase.google.com/) → your project → **Project settings** (gear) → **Service accounts** → **Generate new private key**.
+2. In the project root, copy the example env file and fill it with values from the downloaded JSON:
    ```bash
-   git clone <repository-url>
-   cd ngo-community-app
+   cd backend
+   copy .env.example .env
    ```
+3. Open `backend/.env` and set:
+   - `FIREBASE_PROJECT_ID` → from the JSON `project_id`
+   - `FIREBASE_PRIVATE_KEY_ID` → from `private_key_id`
+   - `FIREBASE_PRIVATE_KEY` → from `private_key` (keep the key in quotes and use `\n` for newlines)
+   - `FIREBASE_CLIENT_EMAIL` → from `client_email`
+   - `FIREBASE_CLIENT_ID` → from `client_id`
+   - `FIREBASE_CLIENT_CERT_URL` → from `client_x509_cert_url`
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### 3. Run the project
 
-3. **Configure environment**
-   - Update `src/config.js` with your API endpoints
-   - Ensure your backend is running and accessible
+**Option A – Two terminals (recommended)**
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+- **Terminal 1 – Frontend:** from project root  
+  `npm run dev`  
+  Then open **http://localhost:5173** (or the port Vite shows).
 
-5. **Open your browser**
-   Navigate to `http://localhost:5173`
+- **Terminal 2 – Backend:** from project root  
+  `cd backend` then `node src/index.js`  
+  Backend runs at **http://localhost:3000**.
+
+**Option B – One command (if `concurrently` works)**  
+From project root:  
+`npm run dev:all`
+
+### 4. Open the app
+
+Navigate to **http://localhost:5173** (or the port printed by Vite). The frontend is already configured to call the backend at `http://localhost:3000` in `src/config.js`.
 
 ### Building for Production
 

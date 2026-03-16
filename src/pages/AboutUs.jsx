@@ -1,6 +1,8 @@
-import React from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
-import Piyush from "../assets/Piyush.png"
+import React, { useState } from 'react';
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import Piyush from "../assets/Piyush.png";
+import { testimonialsAPI } from '../api/community';
 
 // Reusable component for formatted images with consistent rounding
 const FormattedImage = ({ src, alt, width = 300, height = 300, className = "", rounded = true, ...props }) => {
@@ -25,6 +27,25 @@ const FormattedImage = ({ src, alt, width = 300, height = 300, className = "", r
 };
 
 const AboutUs = () => {
+  const [testimonial, setTestimonial] = useState({ text: '', authorName: '', role: 'Community member' });
+  const [testimonialStatus, setTestimonialStatus] = useState(null);
+  const [testimonialSubmitting, setTestimonialSubmitting] = useState(false);
+
+  const handleTestimonialSubmit = async (e) => {
+    e.preventDefault();
+    setTestimonialStatus(null);
+    setTestimonialSubmitting(true);
+    try {
+      await testimonialsAPI.submit(testimonial);
+      setTestimonialStatus('success');
+      setTestimonial({ text: '', authorName: '', role: 'Community member' });
+    } catch (err) {
+      setTestimonialStatus(err.response?.data?.error || 'Failed to submit');
+    } finally {
+      setTestimonialSubmitting(false);
+    }
+  };
+
   return (
     <Container className="py-5">
       <Row className="mb-5">
@@ -125,6 +146,41 @@ const AboutUs = () => {
         </Col>
       </Row>
 
+      <Row className="py-5 rounded-3 mb-5" style={{ background: 'var(--color-bg)' }}>
+        <Col md={8} className="mx-auto">
+          <h2 className="text-center mb-4">Share your experience</h2>
+          <p className="text-center text-muted mb-4">Have you volunteered or worked with an NGO through our platform? We’d love to hear from you.</p>
+          {testimonialStatus === 'success' && <Alert variant="success">Thank you! Your testimonial will be reviewed before publishing.</Alert>}
+          {testimonialStatus && testimonialStatus !== 'success' && <Alert variant="danger">{testimonialStatus}</Alert>}
+          <Form onSubmit={handleTestimonialSubmit}>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Your name</Form.Label>
+                  <Form.Control value={testimonial.authorName} onChange={(e) => setTestimonial(t => ({ ...t, authorName: e.target.value }))} required placeholder="Name" />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Your role</Form.Label>
+                  <Form.Select value={testimonial.role} onChange={(e) => setTestimonial(t => ({ ...t, role: e.target.value }))}>
+                    <option value="Community member">Community member</option>
+                    <option value="Volunteer">Volunteer</option>
+                    <option value="NGO">NGO</option>
+                    <option value="Donor">Donor</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>Your experience</Form.Label>
+              <Form.Control as="textarea" rows={3} value={testimonial.text} onChange={(e) => setTestimonial(t => ({ ...t, text: e.target.value }))} required placeholder="Share your story..." />
+            </Form.Group>
+            <Button type="submit" variant="primary" disabled={testimonialSubmitting}>{testimonialSubmitting ? 'Submitting...' : 'Submit testimonial'}</Button>
+          </Form>
+        </Col>
+      </Row>
+
       <Row className="py-5 bg-light rounded-3 mb-5">
         <Col className="text-center">
           <h2 className="mb-4">Join Our Community</h2>
@@ -132,8 +188,8 @@ const AboutUs = () => {
             Whether you're an NGO looking for support, a volunteer wanting to make a difference, 
             or a donor seeking meaningful causes, our platform connects you with the right opportunities.
           </p>
-          <a href="/register" className="btn btn-primary btn-lg me-3">Sign Up Now</a>
-          <a href="/search" className="btn btn-outline-primary btn-lg">Explore NGOs</a>
+          <Link to="/register" className="btn btn-primary btn-lg me-3">Sign Up Now</Link>
+          <Link to="/search" className="btn btn-outline-primary btn-lg">Explore NGOs</Link>
         </Col>
       </Row>
 

@@ -19,14 +19,15 @@ const Navbar = () => {
 
   return (
     <BootstrapNavbar 
-      bg="dark" 
-      variant="dark" 
+      className="app-navbar"
+      bg="light"
       expand="lg" 
       expanded={expanded}
       onToggle={() => setExpanded(!expanded)}
     >
       <Container>
-        <BootstrapNavbar.Brand as={Link} to="/" onClick={closeNavbar}>
+        <BootstrapNavbar.Brand as={Link} to="/" onClick={closeNavbar} className="d-flex align-items-center gap-2">
+          <i className="bi bi-heart-pulse-fill text-primary" style={{ fontSize: '1.5rem' }} />
           NGO Community
         </BootstrapNavbar.Brand>
         
@@ -45,7 +46,12 @@ const Navbar = () => {
             <Nav.Link as={CustomLink} to="/requirements" onClick={closeNavbar}>
               Requirements
             </Nav.Link>
-            
+            <Nav.Link as={CustomLink} to="/events" onClick={closeNavbar}>
+              Events
+            </Nav.Link>
+            <Nav.Link as={CustomLink} to="/contact" onClick={closeNavbar}>
+              Contact
+            </Nav.Link>
             {isAdmin && (
               <Nav.Link as={CustomLink} to="/admin" onClick={closeNavbar}>
                 Admin Dashboard
@@ -83,13 +89,14 @@ const Navbar = () => {
               </>
             ) : (
               <Dropdown align="end">
-                <Dropdown.Toggle variant="outline-light" id="dropdown-basic">
+                <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic" className="d-flex align-items-center gap-2">
+                  <i className="bi bi-person-circle" />
                   {user?.email}
                 </Dropdown.Toggle>
                 
                 <Dropdown.Menu>
-                  <Dropdown.Item as={Link} to="/profile" onClick={closeNavbar}>
-                    Profile
+<Dropdown.Item as={Link} to="/profile" onClick={closeNavbar}>
+                  <i className="bi bi-person me-2" /> Profile
                   </Dropdown.Item>
                   
                   <Dropdown.Divider />

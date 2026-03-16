@@ -23,9 +23,10 @@ import NgoDashboard from './pages/NgoDashboard';
 import NgoRequirementsManage from './pages/NgoRequirementsManage';
 import AdminPendingRequirements from './pages/AdminPendingRequirements';
 import ProfilePage from './pages/ProfilePage';
-import AboutUs from './pages/AboutUs'; // New page
-import NgoContact from './pages/NgoContact';
-
+import AboutUs from './pages/AboutUs';
+import Contact from './pages/Contact';
+import Events from './pages/Events';
+import AdminCommunity from './pages/AdminCommunity';
 
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -48,7 +49,8 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/requirements" element={<Requirements />} />
                 <Route path="/about" element={<AboutUs />} />
-                <Route path="/ngo-contact" element={<NgoContact />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/events" element={<Events />} />
 
                 {/* Protected Routes */}
                 <Route 
@@ -103,7 +105,15 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-                //ProfilePage
+                <Route 
+                  path="/admin/community" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireAdmin={true}>
+                      <AdminCommunity />
+                    </ProtectedRoute>
+                  } 
+                />
+                {/* Profile */}
                 <Route 
                   path="/profile" 
                   element={

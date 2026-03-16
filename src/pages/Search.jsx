@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Card, Badge, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Card, Badge, Spinner, Alert, Modal } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { searchNgos, setSearchFilters, clearSearchResults } from '../redux/ngoSlice';
 import { useMemo } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { volunteerAPI } from '../api/community';
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [volunteerNgo, setVolunteerNgo] = useState(null);
+  const [volunteerMessage, setVolunteerMessage] = useState('');
+  const [volunteerEmail, setVolunteerEmail] = useState('');
+  const [volunteerSubmitting, setVolunteerSubmitting] = useState(false);
+  const [volunteerStatus, setVolunteerStatus] = useState(null);
+  const { user } = useAuth();
 
   const dispatch = useDispatch();
   const { ngos, loading, error, searchFilters } = useSelector((state) => state.ngo);
@@ -69,18 +77,44 @@ const Search = () => {
     return filtered;
   }, [ngos, selectedCategory, searchTerm]);
 
+  useEffect(() => {
+    if (user?.email) setVolunteerEmail(user.email);
+  }, [user]);
+
+  const handleVolunteerSubmit = async (e) => {
+    e.preventDefault();
+    if (!volunteerNgo || !volunteerEmail || !volunteerMessage.trim()) return;
+    setVolunteerSubmitting(true);
+    setVolunteerStatus(null);
+    try {
+      await volunteerAPI.submitInterest({ ngoEmail: volunteerNgo.email, userEmail: volunteerEmail, message: volunteerMessage.trim() });
+      setVolunteerStatus('success');
+      setVolunteerNgo(null);
+      setVolunteerMessage('');
+    } catch (err) {
+      setVolunteerStatus('error');
+    } finally {
+      setVolunteerSubmitting(false);
+    }
+  };
+
+  const openVolunteerModal = (ngo) => {
+    setVolunteerNgo(ngo);
+    setVolunteerStatus(null);
+    setVolunteerMessage('');
+  };
+
   return (
-    <Container className='mt-5 mb-5'>
+    <Container className="py-5 my-4">
       <Row className="mb-4">
         <Col>
-          <h2 className="fw-bold">Search NGOs</h2>
-          <p className="text-muted">Find NGOs in your area or by category</p>
+          <h1 className="page-title">Search NGOs</h1>
+          <p className="page-subtitle">Find NGOs in your area or by category</p>
         </Col>
       </Row>
 
       {/* Search Filters */}
-      <Card className="mb-4">
-        <Card.Body>
+      <div className="search-filter-card mb-4">
           <Row>
             <Col md={4}>
               <Form.Group className="mb-3">
@@ -136,8 +170,7 @@ const Search = () => {
               </div>
             </Col>
           </Row>
-        </Card.Body>
-      </Card>
+      </div>
 
       {/* Results */}
       {loading && (
@@ -164,51 +197,69 @@ const Search = () => {
           </Row>
 
           {filteredNgos.length === 0 ? (
-            <Card className="text-center py-5">
-              <Card.Body>
-                <h5 className="text-muted">No NGOs found</h5>
-                <p className="text-muted">Try adjusting your search criteria</p>
-              </Card.Body>
-            </Card>
+            <div className="search-filter-card text-center py-5">
+              <i className="bi bi-search display-4 text-muted mb-3 d-block" />
+              <h5 className="text-muted">No NGOs found</h5>
+              <p className="text-muted mb-0">Try adjusting your search criteria</p>
+            </div>
           ) : (
             <Row>
               {filteredNgos.map((ngo) => (
                 <Col key={ngo.id} lg={6} xl={4} className="mb-4">
-                  <Card className="h-100 shadow-sm">
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h5 className="card-title mb-1">{ngo.name}</h5>
-                        <Badge bg="success">Approved</Badge>
-                      </div>
-                      
-                      <p className="text-muted small mb-2">
-                        📍 {ngo.city}
-                      </p>
-                      
-                      <Badge bg="primary" className="mb-3">
-                        {ngo.category}
-                      </Badge>
-                      
-                      <p className="card-text small mb-3">
-                        {ngo.fullAddress}
-                      </p>
-                      
-                      <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted">
-                          📞 {ngo.contact}
-                        </small>
-                        <Button variant="outline-primary" size="sm">
-                          Contact
+                  <div className="ngo-card">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <h5 className="card-title mb-1">{ngo.name}</h5>
+                      <Badge className="badge-approved">Approved</Badge>
+                    </div>
+                    <p className="text-muted small mb-2">
+                      <i className="bi bi-geo-alt me-1" /> {ngo.city}
+                    </p>
+                    <Badge bg="primary" className="mb-3">{ngo.category}</Badge>
+                    <p className="card-text small mb-3">{ngo.fullAddress}</p>
+                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <small className="text-muted">
+                        <i className="bi bi-telephone me-1" /> {ngo.contact}
+                      </small>
+                      <div className="d-flex gap-1">
+                        <Button variant="outline-primary" size="sm" onClick={() => openVolunteerModal(ngo)}>
+                          <i className="bi bi-hand-thumbs-up me-1" /> I want to help
                         </Button>
                       </div>
-                    </Card.Body>
-                  </Card>
+                    </div>
+                  </div>
                 </Col>
               ))}
             </Row>
           )}
         </>
       )}
+
+      {/* Volunteer interest modal */}
+      <Modal show={!!volunteerNgo} onHide={() => setVolunteerNgo(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>I want to help — {volunteerNgo?.name}</Modal.Title>
+        </Modal.Header>
+        <form onSubmit={handleVolunteerSubmit}>
+          <Modal.Body>
+            {volunteerStatus === 'success' && <Alert variant="success">Thank you! The NGO will get in touch with you.</Alert>}
+            {volunteerStatus === 'error' && <Alert variant="danger">Something went wrong. Please try again.</Alert>}
+            <Form.Group className="mb-3">
+              <Form.Label>Your email</Form.Label>
+              <Form.Control type="email" value={volunteerEmail} onChange={(e) => setVolunteerEmail(e.target.value)} required placeholder="your@email.com" />
+            </Form.Group>
+            <Form.Group className="mb-0">
+              <Form.Label>Message (how you can help)</Form.Label>
+              <Form.Control as="textarea" rows={3} value={volunteerMessage} onChange={(e) => setVolunteerMessage(e.target.value)} required placeholder="Brief message to the NGO..." />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setVolunteerNgo(null)}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={volunteerSubmitting}>
+              {volunteerSubmitting ? 'Sending...' : 'Send'}
+            </Button>
+          </Modal.Footer>
+        </form>
+      </Modal>
     </Container>
   );
 };

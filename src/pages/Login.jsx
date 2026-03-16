@@ -79,14 +79,14 @@ const Login = () => {
   };
 
   return (
-    <Container className='mt-5 mb-5'>
+    <Container className="py-5 my-4">
       <Row className="justify-content-center">
         <Col md={6} lg={5}>
-          <Card className="shadow-sm">
-            <Card.Header className="bg-primary text-white text-center">
-              <h4 className="mb-0">Login</h4>
+          <Card className="auth-card">
+            <Card.Header>
+              <h4 className="mb-0 fw-bold">Login</h4>
             </Card.Header>
-            <Card.Body className="p-4">
+            <Card.Body>
               {error && (
                 <Alert variant="danger" onClose={clearAuthError} dismissible>
                   {error}

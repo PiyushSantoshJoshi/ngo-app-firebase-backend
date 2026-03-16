@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 
 const ngoapp = express();
 const PORT = process.env.PORT || 3000;
@@ -10,23 +12,37 @@ const PORT = process.env.PORT || 3000;
 ngoapp.use(cors());
 ngoapp.use(express.json());
 
-// Initialize Firebase Admin SDK
-const serviceAccount = {
-  type: "service_account",
-  project_id: process.env.FIREBASE_PROJECT_ID,
-  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  client_email: process.env.FIREBASE_CLIENT_EMAIL,
-  client_id: process.env.FIREBASE_CLIENT_ID,
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
-};
+// Initialize Firebase Admin SDK (support either JSON file path or env vars)
+let credential;
+let projectId = process.env.FIREBASE_PROJECT_ID;
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+if (serviceAccountPath && fs.existsSync(path.resolve(serviceAccountPath))) {
+  const keyPath = path.resolve(serviceAccountPath);
+  const keyFile = require(keyPath);
+  credential = admin.credential.cert(keyFile);
+  projectId = projectId || keyFile.project_id;
+  console.log('Using Firebase credentials from file:', keyPath);
+} else {
+  const rawKey = process.env.FIREBASE_PRIVATE_KEY || '';
+  const privateKey = rawKey.includes('\\n') ? rawKey.replace(/\\n/g, '\n') : rawKey;
+  const serviceAccount = {
+    type: "service_account",
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: privateKey.trim(),
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+  };
+  credential = admin.credential.cert(serviceAccount);
+}
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
+  credential,
+  databaseURL: projectId ? `https://${projectId}.firebaseio.com` : undefined
 });
 
 const db = admin.firestore();
@@ -747,6 +763,230 @@ ngoapp.get("/messages/broadcasts/:userId", async (req, res) => {
   } catch (err) {
     console.error("Error fetching broadcasts:", err);
     res.status(500).json({ error: "Failed to fetch broadcasts" });
+  }
+});
+
+// ======================= ANNOUNCEMENTS =======================
+ngoapp.get("/announcements", async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 10, 20);
+    const snapshot = await db.collection("announcements")
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get();
+    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(list);
+  } catch (err) {
+    console.error("Error fetching announcements:", err);
+    res.status(500).json({ error: "Failed to fetch announcements" });
+  }
+});
+
+ngoapp.post("/announcements", async (req, res) => {
+  try {
+    const { title, body, authorEmail } = req.body;
+    if (!title || !body) return res.status(400).json({ error: "Title and body are required" });
+    const author = authorEmail || "admin";
+    const docRef = await db.collection("announcements").add({
+      title,
+      body,
+      authorEmail: author,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.status(201).json({ message: "Announcement created", id: docRef.id });
+  } catch (err) {
+    console.error("Error creating announcement:", err);
+    res.status(500).json({ error: "Failed to create announcement" });
+  }
+});
+
+// ======================= EVENTS =======================
+ngoapp.get("/events", async (req, res) => {
+  try {
+    const upcomingOnly = req.query.upcoming === "true";
+    let snapshot = await db.collection("events")
+      .orderBy("eventDate", "asc")
+      .get();
+    const toDate = (v) => v && (v.toDate ? v.toDate() : new Date(v));
+    let list = snapshot.docs.map(doc => {
+      const d = doc.data();
+      const eventDate = d.eventDate ? toDate(d.eventDate) : null;
+      return { id: doc.id, ...d, eventDate: eventDate ? eventDate.toISOString() : null };
+    });
+    if (upcomingOnly) {
+      const now = new Date();
+      list = list.filter(e => e.eventDate && new Date(e.eventDate) >= now);
+    }
+    res.json(list);
+  } catch (err) {
+    console.error("Error fetching events:", err);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+ngoapp.post("/events", async (req, res) => {
+  try {
+    const { title, description, eventDate, location, ngoEmail } = req.body;
+    if (!title || !eventDate || !ngoEmail) return res.status(400).json({ error: "Title, eventDate and ngoEmail are required" });
+    const docRef = await db.collection("events").add({
+      title,
+      description: description || "",
+      eventDate: admin.firestore.Timestamp.fromDate(new Date(eventDate)),
+      location: location || "",
+      ngoEmail,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.status(201).json({ message: "Event created", id: docRef.id });
+  } catch (err) {
+    console.error("Error creating event:", err);
+    res.status(500).json({ error: "Failed to create event" });
+  }
+});
+
+// ======================= CONTACT SUBMISSIONS =======================
+ngoapp.post("/contact", async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    if (!name || !email || !message) return res.status(400).json({ error: "Name, email and message are required" });
+    await db.collection("contact_submissions").add({
+      name,
+      email,
+      subject: subject || "General enquiry",
+      message,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: "new",
+    });
+    res.status(201).json({ message: "Thank you! We will get back to you soon." });
+  } catch (err) {
+    console.error("Error submitting contact:", err);
+    res.status(500).json({ error: "Failed to submit" });
+  }
+});
+
+ngoapp.get("/admin/contact-submissions", async (req, res) => {
+  try {
+    const snapshot = await db.collection("contact_submissions")
+      .orderBy("createdAt", "desc")
+      .limit(100)
+      .get();
+    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(list);
+  } catch (err) {
+    console.error("Error fetching contact submissions:", err);
+    res.status(500).json({ error: "Failed to fetch" });
+  }
+});
+
+// ======================= NEWSLETTER =======================
+ngoapp.post("/newsletter/subscribe", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !/\S+@\S+\.\S+/.test(email)) return res.status(400).json({ error: "Valid email is required" });
+    const existing = await db.collection("newsletter_subscribers").doc(email.toLowerCase()).get();
+    if (existing.exists) return res.status(200).json({ message: "You are already subscribed." });
+    await db.collection("newsletter_subscribers").doc(email.toLowerCase()).set({
+      email: email.toLowerCase(),
+      subscribedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.status(201).json({ message: "Thank you for subscribing!" });
+  } catch (err) {
+    console.error("Error subscribing:", err);
+    res.status(500).json({ error: "Failed to subscribe" });
+  }
+});
+
+// ======================= VOLUNTEER INTEREST =======================
+ngoapp.post("/volunteer/interest", async (req, res) => {
+  try {
+    const { ngoEmail, userEmail, message } = req.body;
+    if (!ngoEmail || !userEmail || !message) return res.status(400).json({ error: "NGO email, your email and message are required" });
+    await db.collection("volunteer_interests").add({
+      ngoEmail,
+      userEmail,
+      message,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      status: "pending",
+    });
+    res.status(201).json({ message: "Thank you! The NGO will get in touch with you." });
+  } catch (err) {
+    console.error("Error submitting volunteer interest:", err);
+    res.status(500).json({ error: "Failed to submit" });
+  }
+});
+
+ngoapp.get("/admin/volunteer-interests", async (req, res) => {
+  try {
+    const snapshot = await db.collection("volunteer_interests")
+      .orderBy("createdAt", "desc")
+      .limit(100)
+      .get();
+    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(list);
+  } catch (err) {
+    console.error("Error fetching volunteer interests:", err);
+    res.status(500).json({ error: "Failed to fetch" });
+  }
+});
+
+// ======================= TESTIMONIALS =======================
+ngoapp.get("/testimonials", async (req, res) => {
+  try {
+    const snapshot = await db.collection("testimonials").where("approved", "==", true).get();
+    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    list.sort((a, b) => {
+      const ta = a.createdAt?.toDate?.() || a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+      const tb = b.createdAt?.toDate?.() || b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+      return tb - ta;
+    });
+    res.json(list.slice(0, 12));
+  } catch (err) {
+    console.error("Error fetching testimonials:", err);
+    res.status(500).json({ error: "Failed to fetch testimonials" });
+  }
+});
+
+ngoapp.post("/testimonials", async (req, res) => {
+  try {
+    const { text, authorName, role } = req.body;
+    if (!text || !authorName) return res.status(400).json({ error: "Text and author name are required" });
+    await db.collection("testimonials").add({
+      text,
+      authorName,
+      role: role || "Community member",
+      approved: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.status(201).json({ message: "Thank you! Your testimonial will be reviewed before publishing." });
+  } catch (err) {
+    console.error("Error submitting testimonial:", err);
+    res.status(500).json({ error: "Failed to submit" });
+  }
+});
+
+ngoapp.post("/admin/testimonials/:id/approve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.collection("testimonials").doc(id).update({ approved: true });
+    res.json({ message: "Testimonial approved" });
+  } catch (err) {
+    console.error("Error approving testimonial:", err);
+    res.status(500).json({ error: "Failed to approve" });
+  }
+});
+
+ngoapp.get("/admin/testimonials", async (req, res) => {
+  try {
+    const snapshot = await db.collection("testimonials").get();
+    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    list.sort((a, b) => {
+      const ta = a.createdAt?.toDate?.() || (a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0));
+      const tb = b.createdAt?.toDate?.() || (b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0));
+      return tb - ta;
+    });
+    res.json(list);
+  } catch (err) {
+    console.error("Error fetching testimonials:", err);
+    res.status(500).json({ error: "Failed to fetch" });
   }
 });
 

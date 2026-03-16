@@ -16,75 +16,26 @@ const AdminDashboard = () => {
   }, [dispatch]);
 
   const stats = [
-    {
-      title: 'Pending NGO Approvals',
-      value: pendingNgos.length,
-      variant: 'warning',
-      icon: '⏳',
-      link: '/admin/pending-ngos'
-    },
-    {
-      title: 'Pending Requirements',
-      value: pendingRequirements.length,
-      variant: 'warning',
-      icon: '📝',
-      link: '/admin/pending-requirements'
-    },
-    {
-      title: 'Total NGOs',
-      value: '500+',
-      variant: 'info',
-      icon: '🏢',
-      link: '/search'
-    },
-    {
-      title: 'Active Requirements',
-      value: '150+',
-      variant: 'success',
-      icon: '📋',
-      link: '/requirements'
-    }
+    { title: 'Pending NGO Approvals', value: pendingNgos.length, variant: 'warning', icon: 'clock-history', link: '/admin/pending-ngos' },
+    { title: 'Pending Requirements', value: pendingRequirements.length, variant: 'warning', icon: 'clipboard-check', link: '/admin/pending-requirements' },
+    { title: 'Total NGOs', value: '500+', variant: 'info', icon: 'building', link: '/search' },
+    { title: 'Active Requirements', value: '150+', variant: 'success', icon: 'list-check', link: '/requirements' }
   ];
 
   const quickActions = [
-    {
-      title: 'Review NGO Applications',
-      description: 'Approve or reject pending NGO registrations',
-      icon: '📝',
-      variant: 'warning',
-      link: '/admin/pending-ngos',
-      disabled: pendingNgos.length === 0
-    },
-    {
-      title: 'Review Requirements',
-      description: 'Approve newly submitted requirements',
-      icon: '🧾',
-      variant: 'warning',
-      link: '/admin/pending-requirements',
-      disabled: pendingRequirements.length === 0
-    },
-    {
-      title: 'View Analytics',
-      description: 'Platform usage statistics and reports',
-      icon: '📊',
-      variant: 'success',
-      link: '/admin/analytics'
-    },
-    {
-      title: 'System Settings',
-      description: 'Configure platform settings and preferences',
-      icon: '⚙️',
-      variant: 'secondary',
-      link: '/admin/settings'
-    }
+    { title: 'Review NGO Applications', description: 'Approve or reject pending NGO registrations', icon: 'clipboard-check', variant: 'warning', link: '/admin/pending-ngos', disabled: pendingNgos.length === 0 },
+    { title: 'Review Requirements', description: 'Approve newly submitted requirements', icon: 'receipt', variant: 'warning', link: '/admin/pending-requirements', disabled: pendingRequirements.length === 0 },
+    { title: 'Community & outreach', description: 'Announcements, contact forms, volunteer interests, testimonials', icon: 'megaphone', variant: 'info', link: '/admin/community' },
+    { title: 'View Analytics', description: 'Platform usage statistics and reports', icon: 'bar-chart', variant: 'success', link: '/admin/analytics' },
+    { title: 'System Settings', description: 'Configure platform settings and preferences', icon: 'gear', variant: 'secondary', link: '/admin/settings' }
   ];
 
   return (
-    <Container className='mt-5 mb-5'>
+    <Container className="py-5 my-4">
       <Row className="mb-4">
         <Col>
-          <h2 className="fw-bold">Admin Dashboard</h2>
-          <p className="text-muted">Welcome to the NGO Community administration panel</p>
+          <h1 className="page-title">Admin Dashboard</h1>
+          <p className="page-subtitle">Welcome to the NGO Community administration panel</p>
         </Col>
       </Row>
 
@@ -92,9 +43,9 @@ const AdminDashboard = () => {
       <Row className="mb-4">
         {stats.map((stat, index) => (
           <Col key={index} md={6} lg={3} className="mb-3">
-            <Card className="h-100 border-0 shadow-sm">
+            <Card className="h-100">
               <Card.Body className="text-center">
-                <div className="display-4 mb-2">{stat.icon}</div>
+                <div className="feature-icon-box mx-auto mb-2"><i className={`bi bi-${stat.icon}`} /></div>
                 <h3 className={`text-${stat.variant} fw-bold mb-2`}>
                   {stat.value}
                 </h3>
@@ -123,9 +74,9 @@ const AdminDashboard = () => {
       <Row>
         {quickActions.map((action, index) => (
           <Col key={index} md={6} lg={3} className="mb-3">
-            <Card className="h-100 border-0 shadow-sm">
+            <Card className="h-100">
               <Card.Body className="text-center">
-                <div className="display-4 mb-3">{action.icon}</div>
+                <div className="feature-icon-box mx-auto mb-2"><i className={`bi bi-${action.icon}`} /></div>
                 <h6 className="fw-bold mb-2">{action.title}</h6>
                 <p className="text-muted small mb-3">{action.description}</p>
                 <Button 

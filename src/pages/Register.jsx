@@ -88,14 +88,14 @@ const Register = () => {
   };
 
   return (
-    <Container className='mt-5 mb-5'>
+    <Container className="py-5 my-4">
       <Row className="justify-content-center">
         <Col md={6} lg={5}>
-          <Card className="shadow-sm">
-            <Card.Header className="bg-success text-white text-center">
-              <h4 className="mb-0">User Registration</h4>
+          <Card className="auth-card">
+            <Card.Header>
+              <h4 className="mb-0 fw-bold">User Registration</h4>
             </Card.Header>
-            <Card.Body className="p-4">
+            <Card.Body>
               {error && (
                 <Alert variant="danger" onClose={clearAuthError} dismissible>
                   {error}
@@ -150,7 +150,7 @@ const Register = () => {
 
                 <Button
                   type="submit"
-                  variant="success"
+                  variant="primary"
                   className="w-100 mb-3"
                   disabled={loading || isSubmitting}
                 >

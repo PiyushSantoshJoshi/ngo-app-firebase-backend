@@ -139,14 +139,14 @@ const NgoRegister = () => {
   };
 
   return (
-    <Container className='mt-5 mb-5'>
+    <Container className="py-5 my-4">
       <Row className="justify-content-center">
         <Col md={8} lg={7}>
-          <Card className="shadow-sm">
-            <Card.Header className="bg-info text-white text-center">
-              <h4 className="mb-0">NGO Registration</h4>
+          <Card className="auth-card">
+            <Card.Header>
+              <h4 className="mb-0 fw-bold">NGO Registration</h4>
             </Card.Header>
-            <Card.Body className="p-4">
+            <Card.Body>
               {error && (
                 <Alert variant="danger" onClose={clearAuthError} dismissible>
                   {error}
