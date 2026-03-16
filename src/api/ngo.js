@@ -34,6 +34,16 @@ const ngoAPI = {
     } catch (error) {
       throw error.response?.data || { error: 'Approval failed' };
     }
+  },
+
+  // Get NGO details
+  getNgoDetails: async (ngoId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/ngoDetails/${ngoId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Failed to fetch NGO details' };
+    }
   }
 };
 

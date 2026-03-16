@@ -1,0 +1,136 @@
+/* GoogleTranslate.css */
+
+.google-translate-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 0.375rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.lang-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+  color: white;
+}
+
+.custom-translate-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9999;
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  clear: both;
+  font-weight: 400;
+  color: #212529;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  font-size: 0.9rem;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+.dropdown-item.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.dropdown-item.active:hover {
+  background-color: #bbdefb;
+}
+
+/* Hide Google Translate elements completely */
+.goog-te-banner-frame, 
+.goog-te-ftab, 
+.goog-te-menu-value,
+.goog-te-gadget,
+.goog-te-gadget-simple {
+  display: none !important;
+}
+
+/* Hide the language select that Google adds */
+.goog-te-combo {
+  display: none !important;
+}
+
+/* Fix for Google Translate banner */
+.skiptranslate {
+  display: none !important;
+}
+
+/* Ensure body doesn't get shifted by Google Translate */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Language specific font families for better readability */
+:lang(hi) { 
+  font-family: 'Noto Sans Devanagari', Arial, sans-serif; 
+}
+:lang(ta) { 
+  font-family: 'Noto Sans Tamil', Arial, sans-serif; 
+}
+:lang(te) { 
+  font-family: 'Noto Sans Telugu', Arial, sans-serif; 
+}
+:lang(ml) { 
+  font-family: 'Noto Sans Malayalam', Arial, sans-serif; 
+}
+:lang(kn) { 
+  font-family: 'Noto Sans Kannada', Arial, sans-serif; 
+}
+:lang(mr) { 
+  font-family: 'Noto Sans Devanagari', Arial, sans-serif; 
+}
+
+/* Additional styles to prevent Google Translate UI from showing */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+/* Ensure our custom dropdown appears above everything */
+.translate-container {
+  position: relative;
+  z-index: 1000;
+}

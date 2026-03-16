@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://api-e5q6islzdq-uc.a.run.app';
+export const API_BASE_URL = 'http://localhost:3000';
 
 export const USER_ROLES = {
   USER: 'user',

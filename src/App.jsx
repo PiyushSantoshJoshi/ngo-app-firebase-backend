@@ -24,6 +24,7 @@ import NgoRequirementsManage from './pages/NgoRequirementsManage';
 import AdminPendingRequirements from './pages/AdminPendingRequirements';
 import ProfilePage from './pages/ProfilePage';
 import AboutUs from './pages/AboutUs'; // New page
+import NgoContact from './pages/NgoContact';
 
 
 // Import Bootstrap CSS
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/requirements" element={<Requirements />} />
                 <Route path="/about" element={<AboutUs />} />
+                <Route path="/ngo-contact" element={<NgoContact />} />
 
                 {/* Protected Routes */}
                 <Route 

@@ -1,3 +1,4 @@
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -11,6 +12,43 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide Google Translate elements completely */
+.goog-te-banner-frame, 
+.goog-te-ftab, 
+.goog-te-menu-value,
+.goog-te-gadget,
+.goog-te-gadget-simple,
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+/* Hide the language select that Google adds */
+.goog-te-combo {
+  display: none !important;
+}
+
+/* Fix for Google Translate banner */
+.skiptranslate {
+  display: none !important;
+}
+
+/* Ensure body doesn't get shifted by Google Translate */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Style for our custom dropdown */
+.custom-translate-dropdown {
+  z-index: 9999;
+}
+
+/* Translate container positioning */
+.translate-container {
+  position: relative;
+  z-index: 1000;
 }
 
 a {
