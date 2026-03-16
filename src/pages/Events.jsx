@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { eventsAPI } from '../api/community';
 
 const Events = () => {
+  const { isNgo } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,8 +33,13 @@ const Events = () => {
           <h1 className="page-title">Events</h1>
           <p className="page-subtitle">Upcoming drives, fundraisers, and community events by NGOs</p>
         </Col>
-        <Col xs="auto">
-          <div className="form-check form-switch">
+        <Col xs="auto" className="d-flex align-items-center gap-3">
+          {isNgo && (
+            <Button as={Link} to="/events/add" variant="primary" size="sm">
+              <i className="bi bi-plus-lg me-1" /> Add event
+            </Button>
+          )}
+          <div className="form-check form-switch mb-0">
             <input className="form-check-input" type="checkbox" id="upcomingOnly" checked={upcomingOnly} onChange={(e) => setUpcomingOnly(e.target.checked)} />
             <label className="form-check-label" htmlFor="upcomingOnly">Upcoming only</label>
           </div>

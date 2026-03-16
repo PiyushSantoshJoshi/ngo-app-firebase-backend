@@ -26,6 +26,7 @@ import ProfilePage from './pages/ProfilePage';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import Events from './pages/Events';
+import AddEvent from './pages/AddEvent';
 import AdminCommunity from './pages/AdminCommunity';
 
 // Import Bootstrap CSS
@@ -51,6 +52,7 @@ function App() {
                 <Route path="/about" element={<AboutUs />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/events" element={<Events />} />
+                <Route path="/events/add" element={<AddEvent />} />
 
                 {/* Protected Routes */}
                 <Route 
