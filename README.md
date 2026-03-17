@@ -23,8 +23,8 @@ A comprehensive web application built with React.js and Bootstrap for connecting
 ## 🛠️ Tech Stack
 
 - **Frontend**: React.js 19, Bootstrap 5, Redux Toolkit
-- **Backend**: Firebase Functions (Node.js/Express)
-- **Database**: Firestore
+- **Backend**: Node.js + Express with Firebase Admin
+- **Database**: Firestore (via Firebase Admin SDK)
 - **Authentication**: Custom auth system with localStorage
 - **Deployment**: Vite build system
 
@@ -32,40 +32,57 @@ A comprehensive web application built with React.js and Bootstrap for connecting
 
 ```
 src/
-├── api/                    # API service files
-│   ├── auth.js            # Authentication APIs
-│   ├── ngo.js             # NGO management APIs
-│   ├── requirements.js     # Requirements APIs
-│   ├── messages.js        # Messaging APIs
-│   └── index.js           # API exports
-├── components/            # Reusable UI components
-│   ├── Navbar.jsx         # Navigation component
-│   ├── Footer.jsx         # Footer component
-│   ├── ProtectedRoute.jsx # Route protection
-│   └── CustomLink.jsx     # Custom navigation links
-├── context/               # React Context
-│   └── AuthContext.jsx    # Authentication context
-├── hooks/                 # Custom hooks
-│   └── useAuth.js         # Authentication hook
-├── pages/                 # Page components
-│   ├── Home.jsx           # Landing page
-│   ├── Login.jsx          # User login
-│   ├── Register.jsx       # User registration
-│   ├── NgoRegister.jsx    # NGO registration
-│   ├── Search.jsx         # NGO search
-│   ├── Requirements.jsx   # Requirements management
-│   ├── Messages.jsx       # Messaging system
-│   └── AdminDashboard.jsx # Admin panel
-├── redux/                 # Redux store and slices
-│   ├── store.js           # Redux store configuration
-│   ├── authSlice.js       # Authentication state
-│   ├── ngoSlice.js        # NGO state management
-│   └── requirementSlice.js # Requirements state
-├── styles/                # Custom CSS
-│   └── custom.css         # Enhanced styling
-├── App.jsx                # Main app component
-├── main.jsx               # Entry point
-└── config.js              # Configuration constants
+├── api/                       # API client helpers
+│   ├── auth.js               # Auth-related calls
+│   ├── ngo.js                # NGO management calls
+│   ├── community.js          # Community / testimonials / misc
+│   ├── requirements.js       # Requirement CRUD + search
+│   ├── messages.js           # Messaging + broadcasts
+│   └── index.js              # API exports
+├── components/               # Reusable UI components
+│   ├── Navbar.jsx            # Top navigation bar
+│   ├── Footer.jsx            # Footer
+│   ├── ProtectedRoute.jsx    # Route/role protection
+│   ├── CustomLink.jsx        # Reusable nav links
+│   └── GoogleTranslate.jsx   # Language switcher widget
+├── context/
+│   └── AuthContext.jsx       # Auth/session context
+├── hooks/
+│   └── useAuth.js            # Custom auth hook
+├── pages/                    # Major pages / views
+│   ├── Home.jsx              # Landing page
+│   ├── AboutUs.jsx           # About the platform
+│   ├── Contact.jsx           # Contact form
+│   ├── Events.jsx            # Event listing
+│   ├── AddEvent.jsx          # NGO event creation
+│   ├── Login.jsx             # User login
+│   ├── Register.jsx          # User registration
+│   ├── NgoRegister.jsx       # NGO registration
+│   ├── NgoDashboard.jsx      # NGO dashboard
+│   ├── NgoRequirementsManage.jsx   # NGO requirements management
+│   ├── Search.jsx            # NGO & requirement search
+│   ├── Requirements.jsx      # Public requirements listing
+│   ├── Messages.jsx          # Conversations UI
+│   ├── AdminDashboard.jsx    # Admin overview
+│   ├── AdminPendingRequirements.jsx # Approve/reject requirements
+│   ├── Pendingngos.jsx       # Approve/reject NGOs
+│   ├── AdminCommunity.jsx    # Manage testimonials, contacts, etc.
+│   ├── ProfilePage.jsx       # User profile
+│   ├── ConversationsList.jsx # Messages sidebar (internal)
+│   ├── ChatWindow.jsx        # Chat area (internal)
+│   ├── BroadcastModal.jsx    # Admin broadcast modal (internal)
+│   └── TestMessaging.jsx     # Dev/test view for messaging
+├── redux/
+│   ├── store.js              # Redux store configuration
+│   ├── authSlice.js          # Auth state
+│   ├── ngoSlice.js           # NGO data
+│   ├── requirementSlice.js   # Requirements state
+│   └── languageSlice.js      # i18n / language selection
+├── styles/
+│   └── custom.css            # Custom theme overrides
+├── App.jsx                   # Route layout + shells
+├── main.jsx                  # React entry point
+└── config.js                 # API base URL & enums
 ```
 
 ## 🚀 Getting Started
@@ -245,10 +262,3 @@ For support and questions:
 ---
 
 **Built with ❤️ using React.js and Bootstrap**
-FIREBASE_PROJECT_ID=piyush-techno
-FIREBASE_PRIVATE_KEY_ID= 7eba37b125483e03dcde171caa60002bc794521d
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBmyC3NFsDkbNV\nRVENZUqEpqz7GIuOtLYiYVjxfC1ypl39bmC3EZuowIPPhckCREXMCuwJnDvPqHB2\nLpAWMsOC2HqeaPVDp/sfYgUR4IY4+YnI9n9k36J8HsLIbcOf0C7mRfs91/NXWouz\ndwpSuQAXxj3upaBYxjMietU6vcW5cFIoBgukCM+gy6GV2hkoDsuRvtonecbfaVBP\nYJ51gz8vEIqDd81fZMxcrvgxaixuT2rXcf/Vuc9vBDl/1GEHl2kZeu8I2T9GZxjt\nqbeKSVb3B3fR+2TDwo8Ez5nwlAL73GEq9hACHRG8IncPflO+vew21L5VmktyCe20\niN4ViVZhAgMBAAECggEALneemwoYXBtwuOMZqIbqozrj4qJKAJbT7h2CPPdqaw2O\nGoEO+nFh9Fc8a6b3DzG2tNncPBRA8L7DO0JCt+k4LqPpjjKvxyy+o5IhmGBUpsER\ntmefPOVF+NdjNbrOjIFpeEBMpFO75nfndsv38NHROWONwsUC3ru3Uyu7GM2qcq6c\nwHSdzqPfaa3gGogfk2WptCEyxoakDvD7HTzx6vOHu16Z1/Wsgf392Zce9vLmrBNr\ntw2ZnmL4rHew26LXPko3PMr5Nahc1g96MgkveT+Pz0V0g6L5/NQ8t3n/9bNIQY3D\n9yjnjwQcJMJeZ16e0iN5NFfqhjDyiY0w0+Ra5aXKyQKBgQD27LboC/IbZK+Pi9M/\nuBaMTd0a2L7pT6ZOgobRR1+1o8jPyjtstXruqhClqnZ39eZSgugwQnmqJGvVg7CG\n8W0ZhKBimCn2R66TVknsFG80l6Ex7JfyFpvxjcYur5kCGc2qv7OlmBSvYj0IQeU9\nlJ8M5jGbboVRcb2I4jRAhlZCPQKBgQDIuL5usQ1FkBvxnMjEG8QuaFC6pjGoDCsa\nHJka77uLUdb61JYBYM45qL1qR5Qmzb1YxalqFWSy3J4+i/ftXtnMGCh/lrweQfkG\nNJosb9qndRDIfIL0YmU5kIto3cNiQotbAsRWL3rq/9ykPzClVTRLAKSWRG/JxyT+\nYFYdwCTa9QKBgF6CY8+VIumRNBEBN63fy+GPu90WsJukPMc39loLs3pWYfoGMZB+\nNbs7pHuELyvjFnDmYfB2wRJ6NjvW164Ooe9ub+TM0OLOtOb30/tkJtw+XRg6sj2a\nob1mwkAEPdAsCCgej6gF+YTXWPzcG93iEK5jPQF839I4co795Xn88O8RAoGBAJ1U\nOWf3/UgeOdj7JF6ayP37I/P5Goj26L3x1oxHhoAgaNp40Q9Jeru1KKrqahS0RQsU\n+8K7/A86YAr0mSOEqkCQWwYO92rcGT4k8weLsR564unStq6phWBGjQ9oa6JUOHjg\nxVYspzMV1DMlmJKvI2r6mQdzow/MuZFtn3J4TisVAoGBAMIcQTjzyMX/kNGbAtoN\n5Ptx9jxBCUat1DdwQb4xzygzA4gmuoSnit2oezUIEC2tRJDh8FDZWk9O95w+Euv4\nQ41HJBtcnGHxqN7Hz/EZHkotAr250j2CBdnTVf5VI4OrT1OpgzxnNvBvsAH/cDkH\nivzoDMiQKmRw8CcvVED6qmo1\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@piyush-techno.iam.gserviceaccount.com
-FIREBASE_CLIENT_ID=109561263202776812284
-FIREBASE_CLIENT_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40piyush-techno.iam.gserviceaccount.com
-PORT=3000
